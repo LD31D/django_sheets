@@ -19,3 +19,6 @@ class Sheet(models.Model):
 	def save(self, *args, **kwargs):
 		self.key = get_random_string(length=56)
 		return super(Sheet, self).save(*args, **kwargs)
+
+	def get_absolute_url(self):
+		return reverse('sheet:view', args=[self.key])
