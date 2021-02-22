@@ -22,3 +22,22 @@ class Sheet(models.Model):
 
 	def get_absolute_url(self):
 		return reverse('sheet:view', args=[self.key])
+
+
+class Cell(models.Model):
+	objects = models.Manager()
+
+	sheet = models.ForeignKey('Sheet', on_delete=models.CASCADE, related_name='cells')
+	coordinates = models.CharField(max_length=5)
+	value = models.CharField(max_length=256, blank=True, null=True)
+
+	class Meta:
+		constraints = [
+			models.UniqueConstraint(
+				fields=['sheet', 'coordinates'],
+				name='unique_coordinates'
+			)
+		]
+
+	def __str__(self):
+		return self.coordinates
