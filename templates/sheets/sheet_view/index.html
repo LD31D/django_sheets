@@ -1,0 +1,48 @@
+<html>
+<head></head>
+<body>
+  	<table></table>
+    
+    <script>
+        function generateCells(){
+            for (let i=0; i<100; i++) {
+                let row = document.querySelector("table").insertRow(-1);
+
+                for (let j=0; j<27; j++) {
+                    let letter = String.fromCharCode("A".charCodeAt(0)+j-1);
+
+                    let cell = "<input id='"+ letter+i +"' autocomplete='off' />";
+
+                    row.insertCell(-1).innerHTML = i && j ? cell : i || letter;
+                }
+            }
+        }
+
+        function updateCells(){
+            let currentURL = window.location.href;
+            let requestURL = currentURL + 'api/cells';
+
+            let xhr = new XMLHttpRequest();
+
+            xhr.open('GET', requestURL);
+            xhr.responseType = 'json';
+
+            xhr.onload = () => {
+                let cells = xhr.response;
+
+                cells.forEach(
+                    function(cell){
+                        document.getElementById(cell.coordinates).value = cell.value;
+                    }
+                );
+
+            }
+
+            xhr.send();
+        }
+
+        generateCells();
+        updateCells();
+    </script>
+</body>
+</html>

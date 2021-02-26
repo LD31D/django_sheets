@@ -6,10 +6,10 @@ from . import views
 
 
 router = routers.DefaultRouter()
-router.register(r'cells', views.CellsViewSet, basename='cutareadel')
+router.register(r'cells', views.CellsViewSet, basename='cells')
 
 
 urlpatterns = [
 	path('<sheet_key>/', views.SheetView.as_view(), name='view'),
-	path('<sheet_key>/', include(router.urls)),
+	path('<sheet_key>/api/', include(router.urls)),
 ]
