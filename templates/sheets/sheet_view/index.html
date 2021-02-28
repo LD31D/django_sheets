@@ -4,22 +4,23 @@
   	<table></table>
     
     <script>
-        function generateCells(){
+        var currentURL = window.location.href;
+
+        function generateCells() {
             for (let i=0; i<100; i++) {
                 let row = document.querySelector("table").insertRow(-1);
 
                 for (let j=0; j<27; j++) {
                     let letter = String.fromCharCode("A".charCodeAt(0)+j-1);
 
-                    let cell = "<input id='"+ letter+i +"' autocomplete='off' />";
+                    let cell = "<input id='"+ letter+i +"' class='cell' autocomplete='off' />";
 
                     row.insertCell(-1).innerHTML = i && j ? cell : i || letter;
                 }
             }
         }
 
-        function updateCells(){
-            let currentURL = window.location.href;
+        function updateCells() {
             let requestURL = currentURL + 'api/cells';
 
             let xhr = new XMLHttpRequest();
@@ -30,19 +31,36 @@
             xhr.onload = () => {
                 let cells = xhr.response;
 
-                cells.forEach(
-                    function(cell){
+                for (let cell of cells) {
+                    console.log(document.getElementById(cell.coordinates));
+                    if (cell.coordinates !== "") {
                         document.getElementById(cell.coordinates).value = cell.value;
                     }
-                );
-
+                }
             }
 
             xhr.send();
         }
 
+        function addEventToCells() {
+            let cells = document.querySelectorAll('.cell')
+
+            for (let cell of cells) {
+                cell.onchange = () => {
+                    let xhr = new XMLHttpRequest();
+                    let requestURL = currentURL + 'api/cell/' + cell.id + '/';
+
+                    xhr.open('POST', requestURL, true);
+                    xhr.responseType = 'json';
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+                    xhr.send(JSON.stringify({ value: cell.value }));
+                }
+            }
+        }
+
         generateCells();
         updateCells();
+        addEventToCells();
     </script>
 </body>
 </html>

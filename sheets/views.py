@@ -1,5 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.response import Response
+from rest_framework.authentication import BasicAuthentication 
+
 
 from django.shortcuts import get_object_or_404
 from django.views.generic.detail import DetailView
@@ -39,6 +41,8 @@ class CellsViewSet(viewsets.ReadOnlyModelViewSet):
 
 class CellViewSet(viewsets.ViewSet):
 	serializer_class = CellSerializer
+	authentication_classes = (BasicAuthentication, )
+
 
 	def get(self, request, sheet_key, coordinates):
 		sheet_obj = get_object_or_404(Sheet, key=sheet_key)
@@ -50,11 +54,16 @@ class CellViewSet(viewsets.ViewSet):
 	def create_or_update(self, request, sheet_key, coordinates):
 		sheet_obj = get_object_or_404(Sheet, key=sheet_key)
 
+		cell_value = request.data['value']
+
 		cell_obj, created = Cell.objects.update_or_create(
 				coordinates=coordinates, 
 				sheet=sheet_obj, 
-				defaults={'value': request.data['value']}
+				defaults={'value': cell_value}
 			)
+
+		if cell_value == "":
+			cell_obj.delete()
 
 		serializer = self.serializer_class(cell_obj)		
 		return Response(serializer.data)
