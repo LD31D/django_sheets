@@ -1,11 +1,12 @@
 from rest_framework import viewsets
+from rest_framework.response import Response
 
 from django.shortcuts import get_object_or_404
 from django.views.generic.detail import DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from .models import Sheet, Cell
-from .serializers import CellsSerializer
+from .serializers import CellSerializer
 
 
 class SheetView(LoginRequiredMixin, DetailView):
@@ -23,14 +24,37 @@ class SheetView(LoginRequiredMixin, DetailView):
 
 
 class CellsViewSet(viewsets.ReadOnlyModelViewSet):
-	serializer_class = CellsSerializer
+	serializer_class = CellSerializer
 
 	def get_queryset(self):
-		sheet = get_object_or_404(
+		sheet_obj = get_object_or_404(
 				Sheet, 
-				key=self.kwargs.get("sheet_key")
+				key=self.kwargs.get('sheet_key')
 			)
 
-		queryset = sheet.cells
+		queryset = sheet_obj.cells
 
 		return queryset
+
+
+class CellViewSet(viewsets.ViewSet):
+	serializer_class = CellSerializer
+
+	def get(self, request, sheet_key, coordinates):
+		sheet_obj = get_object_or_404(Sheet, key=sheet_key)
+		cell_obj = get_object_or_404(sheet_obj.cells, coordinates=coordinates)
+
+		serializer = self.serializer_class(cell_obj)
+		return Response(serializer.data)
+
+	def create_or_update(self, request, sheet_key, coordinates):
+		sheet_obj = get_object_or_404(Sheet, key=sheet_key)
+
+		cell_obj, created = Cell.objects.update_or_create(
+				coordinates=coordinates, 
+				sheet=sheet_obj, 
+				defaults={'value': request.data['value']}
+			)
+
+		serializer = self.serializer_class(cell_obj)		
+		return Response(serializer.data)
